@@ -1,5 +1,6 @@
 import React from 'react';
 import { DashboardWidget } from '../../types/dashboard';
+import DynamicComponent from '@rhngui/patternfly-react-renderer';
 
 const componentMapper = {
   TimeSeriesChart: React.lazy(() => import('../PersesBindings/PersesWidgets/PersesTimeSeries')),
@@ -39,6 +40,14 @@ export function WidgetRenderer({ widget }: WidgetRendererProps) {
         );
 
       case 'ngui':
+        if (widget.props.ngui_content) {
+          const c = JSON.parse(widget.props.ngui_content);
+          console.log(c);
+          return <DynamicComponent config={c} />;
+        } else {
+          return <div>No data</div>;
+        }
+      case 'log':
         return (
           <div>
             {widget.props.title && (
@@ -46,9 +55,7 @@ export function WidgetRenderer({ widget }: WidgetRendererProps) {
                 {widget.props.title}
               </h3>
             )}
-            <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.4' }}>
-              {widget.props.content || 'No content available'}
-            </p>
+            <pre>{widget.props.content || 'No content available'}</pre>
           </div>
         );
 
