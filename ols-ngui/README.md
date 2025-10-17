@@ -8,9 +8,9 @@
 
     `oc login ...`
 
-2. Run Openshift MCP Server with YAML output
+2. Run Openshift MCP Server with TABLE (default) output
 
-    `npx kubernetes-mcp-server@latest --port 8081 --list-output yaml --read-only --toolsets core`
+    `npx kubernetes-mcp-server@latest --port 8081 --list-output table --read-only --toolsets core`
 
 3. Run NGUI
 
@@ -23,7 +23,7 @@
       --env NGUI_PROVIDER_API_KEY=$OPENAI_API_KEY \
       --env NGUI_CONFIG_PATH="/opt/app-root/config/ngui_openshift_mcp_config.yaml" \
       --env MCP_STRUCTURED_OUTPUT_ENABLED="false" \
-      quay.io/next-gen-ui/mcp
+      quay.io/next-gen-ui/mcp:dev
    ``` 
 
 Or from git source:
