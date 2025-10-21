@@ -11,6 +11,8 @@ import {
   parseAddWidgetEvent,
   isGenerateUIEvent,
   parseGenerateUIEvent,
+  isSetDashboardMetadata,
+  parseSetDashboardMetadata,
 } from '../services/eventParser';
 import { DashboardMCPClient } from '../services/dashboardClient';
 import DashboardUtils, { NormalizedDashboard } from '../components/utils/dashboard.utils';
@@ -98,8 +100,16 @@ export function useDashboards(dashboardId?: string) {
           setWidgets((prev) => [...prev, ...(generateUIResponse.widgets ?? [])]);
         }
       }
+
+      if (isSetDashboardMetadata(toolCall)) {
+        const meta = parseSetDashboardMetadata(toolCall);
+        if (meta) {
+          DashboardUtils.applyDashboardMetadataUpdate(setActiveDashboard, meta);
+        }
+      }
     });
   }
+
 
   useEffect(() => {
     if (streamChunk && streamChunk.additionalAttributes?.toolCalls) {
@@ -150,5 +160,6 @@ export function useDashboards(dashboardId?: string) {
     widgets,
     activeDashboard,
     hasDashboards: dashboards.length > 0 || activeDashboard,
+    setActiveDashboard,
   };
 }

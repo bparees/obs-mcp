@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { useDashboards } from '../hooks/useDashboards';
 import { DashboardGrid } from './Dashboard';
-import { ChatInterface, GenieLayout } from './shared';
+import { ChatInterface, EditableInline, GenieLayout } from './shared';
 import { DashboardMCPClient } from '../services/dashboardClient';
+import DashboardUtils from './utils/dashboard.utils';
 import './utils/reactPolyfills';
 
 // Dashboard Layout component
@@ -13,7 +14,7 @@ function DashboardLayout() {
   const searchParams = new URLSearchParams(location.search);
   const dashboardId = searchParams.get('dashboardId');
 
-  const { widgets, activeDashboard, hasDashboards } = useDashboards(dashboardId || undefined);
+  const { widgets, activeDashboard, hasDashboards, setActiveDashboard } = useDashboards(dashboardId || undefined);
   const dashboardClient = useRef(new DashboardMCPClient());
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -37,16 +38,41 @@ function DashboardLayout() {
     [activeDashboard?.layout?.layoutId],
   );
 
+  const onConfirm = (field: 'title' | 'description') =>
+    async (updatedValue: string) => {
+      try {
+        const resp: any = await dashboardClient.current.setDashboardMetadata(
+          activeDashboard.activeLayoutId,
+          field === 'title' ? updatedValue : undefined,
+          field === 'description' ? updatedValue : undefined,
+        );
+
+        DashboardUtils.applyDashboardMetadataUpdate(setActiveDashboard, {
+          layoutId: resp?.layout?.layoutId,
+          name: field === 'title' ? (resp?.layout?.name ?? updatedValue) : undefined,
+          description: field === 'description' ? (resp?.layout?.description ?? updatedValue) : undefined,
+        });
+      } catch (e) {
+        console.error(
+          `Failed to update dashboard ${field === 'title' ? 'name' : 'description'}:`,
+          e,
+        );
+      }
+    };
+
   return (
     <div style={{ padding: '20px' }}>
       {activeDashboard && activeDashboard.layout && (
         <div style={{ marginBottom: '20px' }}>
-          <h2 style={{ margin: '0 0 10px 0', fontSize: '24px', fontWeight: 'bold' }}>
-            {activeDashboard.layout.name || 'Untitled Dashboard'}
-          </h2>
-          <p style={{ margin: '0 0 20px 0', color: '#666', fontSize: '14px' }}>
-            {activeDashboard.layout.description || 'No description available'}
-          </p>
+          <EditableInline
+            value={activeDashboard.layout.name || 'Untitled Dashboard'}
+            isTitle
+            onConfirm={onConfirm('title')}
+          />
+          <EditableInline
+            value={activeDashboard.layout.description || 'No description available'}
+            onConfirm={onConfirm('description')}
+          />
         </div>
       )}
 
