@@ -14,6 +14,15 @@
 
 3. Run NGUI
 
+From Cluster Pod:
+
+  ```sh
+  NGUI_POD=$(kubectl get pods -n openshift-lightspeed -l app.kubernetes.io/name=next-gen-ui-mcp -o jsonpath="{.items[0].metadata.name}")
+  kubectl port-forward -n openshift-lightspeed $NGUI_POD 9200:9200
+  ```
+
+Or as local image
+
    ```sh
    export OPENAI_API_KEY="sk-..."
    podman run --rm -it -p 9200:9200 \
@@ -22,6 +31,7 @@
       --env NGUI_MODEL="gpt-4o-mini" \
       --env NGUI_PROVIDER_API_KEY=$OPENAI_API_KEY \
       --env NGUI_CONFIG_PATH="/opt/app-root/config/ngui_openshift_mcp_config.yaml" \
+      --env MCP_TOOLS="generate_ui_component" \
       --env MCP_STRUCTURED_OUTPUT_ENABLED="false" \
       quay.io/next-gen-ui/mcp:dev
    ``` 
