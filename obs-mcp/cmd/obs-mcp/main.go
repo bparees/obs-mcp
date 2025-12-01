@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/prometheus/common/promslog"
+
 	"github.com/inecas/obs-mcp/pkg/k8s"
 	"github.com/inecas/obs-mcp/pkg/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -17,9 +19,13 @@ func main() {
 	var listen = flag.String("listen", "", "Listen address for HTTP mode (e.g., :9100, 127.0.0.1:8080)")
 	var authMode = flag.String("auth-mode", "", "Authentication mode: kubeconfig, serviceaccount, or header")
 	var insecure = flag.Bool("insecure", false, "Skip TLS certificate verification")
+	var logLevel = flag.String("log-level", "info", "Log level: debug, info, warn, error")
 
 	var noGuardrails = flag.Bool("no-guardrails", false, "Disable guardrails")
 	flag.Parse()
+
+	// Configure slog with specified log level
+	configureLogging(*logLevel)
 
 	// Parse and validate auth mode
 	parsedAuthMode, err := mcp.ParseAuthMode(*authMode)
@@ -88,4 +94,26 @@ func determinePrometheusURL(authMode mcp.AuthMode) string {
 
 	// Default to localhost for all other auth modes
 	return "http://localhost:9090"
+}
+
+// configureLogging sets up the slog logger with the specified log level
+func configureLogging(levelStr string) {
+	level := promslog.NewLevel()
+	err := level.Set(levelStr)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	format := promslog.NewFormat()
+	err = format.Set("logfmt")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	logger := promslog.New(&promslog.Config{
+		Level:  level,
+		Format: format,
+		Style:  promslog.GoKitStyle,
+	})
+	slog.SetDefault(logger)
 }
