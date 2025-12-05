@@ -27,6 +27,8 @@ func main() {
 	var logLevel = flag.String("log-level", "info", "Log level: debug, info, warn, error")
 
 	var guardrails = flag.String("guardrails", "all", "Guardrails configuration: 'all' (default), 'none', or comma-separated list of guardrails to enable (disallow-explicit-name-label, require-label-matcher, disallow-blanket-regex)")
+	var maxMetricCardinality = flag.Uint64("guardrails.max-metric-cardinality", 20000, "Maximum allowed series count per metric (0 = disabled)")
+	var maxLabelCardinality = flag.Uint64("guardrails.max-label-cardinality", 500, "Maximum allowed label value count for blanket regex (0 = always disallow blanket regex). Only takes effect if disallow-blanket-regex is enabled.")
 	flag.Parse()
 
 	// Configure slog with specified log level
@@ -45,6 +47,12 @@ func main() {
 	parsedGuardrails, err := prometheus.ParseGuardrails(*guardrails)
 	if err != nil {
 		log.Fatalf("Invalid guardrails configuration: %v", err)
+	}
+
+	// Set max metric cardinality and max label cardinality if guardrails are enabled
+	if parsedGuardrails != nil {
+		parsedGuardrails.MaxMetricCardinality = *maxMetricCardinality
+		parsedGuardrails.MaxLabelCardinality = *maxLabelCardinality
 	}
 
 	// Create MCP options
