@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: obs-mcp-config
+  namespace: obs-mcp
+data:
+  # this is the default prometheus url for kube-prometheus stack
+  prometheus-url: "http://prometheus-k8s.monitoring.svc.cluster.local:9090"
